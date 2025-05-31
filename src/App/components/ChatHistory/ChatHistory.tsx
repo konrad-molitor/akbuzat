@@ -4,9 +4,6 @@ import {LlmState, SimplifiedModelChatItem} from "../../../../electron/state/llmS
 import {UserMessage} from "./components/UserMessage/UserMessage.js";
 import {ModelMessage} from "./components/ModelMessage/ModelMessage.js";
 
-import "./ChatHistory.css";
-
-
 export function ChatHistory({simplifiedChat, generatingResult, className}: ChatHistoryProps) {
     const renderChatItems = useMemo(() => {
         if (simplifiedChat.length > 0 &&
@@ -18,23 +15,28 @@ export function ChatHistory({simplifiedChat, generatingResult, className}: ChatH
         return simplifiedChat;
     }, [simplifiedChat, generatingResult]);
 
-    return <div className={classNames("appChatHistory", className)}>
-        {
-            renderChatItems
-                .map((item, index) => {
-                    if (item.type === "model")
-                        return <ModelMessage
+    return (
+        <div className={classNames(
+            "flex flex-col gap-4 p-4 pb-24 w-full max-w-full",
+            className
+        )}
+        >
+            {renderChatItems.map((item, index) => {
+                if (item.type === "model")
+                    return (
+                        <ModelMessage
                             key={index}
                             modelMessage={item}
                             active={index === renderChatItems.length - 1 && generatingResult}
-                        />;
-                    else if (item.type === "user")
-                        return <UserMessage key={index} message={item} />;
+                        />
+                    );
+                else if (item.type === "user")
+                    return <UserMessage key={index} message={item} />;
 
-                    return null;
-                })
-        }
-    </div>;
+                return null;
+            })}
+        </div>
+    );
 }
 
 type ChatHistoryProps = {

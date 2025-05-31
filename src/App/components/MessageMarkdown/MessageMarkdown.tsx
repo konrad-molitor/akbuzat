@@ -2,9 +2,6 @@ import {useMemo} from "react";
 import classNames from "classnames";
 import {MarkdownContent} from "../MarkdownContent/MarkdownContent.js";
 
-import "./MessageMarkdown.css";
-
-
 export function MessageMarkdown({children, activeDot = false, className}: MessageMarkdownProps) {
     const renderContent = useMemo(() => {
         if (children == null)
@@ -31,7 +28,13 @@ export function MessageMarkdown({children, activeDot = false, className}: Messag
         return children;
     }, [children, activeDot]);
 
-    return <MarkdownContent className={classNames("appMessageMarkdown", activeDot && "active", className)}>
+    return <MarkdownContent 
+        className={classNames(
+            "break-words first:mt-0 last:mb-0 [&>*]:bidi-plaintext",
+            activeDot && "after:content-[''] after:static after:inline-block after:bg-current after:w-2 after:h-2 after:-translate-y-0.5 after:rounded-full after:ms-2 after:align-middle after:animate-[messageMarkdownActiveDot_2s_infinite_ease-in-out]",
+            className
+        )}
+    >
         {renderContent}
     </MarkdownContent>;
 }

@@ -5,8 +5,6 @@ import {MessageMarkdown} from "../../../MessageMarkdown/MessageMarkdown.js";
 import {RightChevronIconSVG} from "../../../../../icons/RightChevronIconSVG.js";
 import {MarkdownContent} from "../../../MarkdownContent/MarkdownContent.js";
 
-import "./ModelResponseThought.css";
-
 const excerptLength = 1024;
 
 export function ModelResponseThought({text, active, duration}: ModelResponseThoughtProps) {
@@ -30,22 +28,44 @@ export function ModelResponseThought({text, active, duration}: ModelResponseThou
         return "Finished thinking";
     }, [active, duration]);
 
-    return <div className={classNames("responseThought", active && "active", isOpen && "open")}>
-        <button className="header" onClick={toggleIsOpen}>
-            <span className="summary">
-                <div className="title">{title}</div>
-                <RightChevronIconSVG className="chevron" />
-            </span>
-            <MarkdownContent
-                className={classNames("excerpt", isOpen && "hide")}
-                dir="auto"
-                inline
+    return (
+        <div className={classNames(
+            "rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden",
+            active && "border-blue-500 dark:border-blue-500",
+            isOpen && "bg-gray-50 dark:bg-gray-800"
+        )}>
+            <button 
+                className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                onClick={toggleIsOpen}
             >
-                {text.slice(-excerptLength)}
-            </MarkdownContent>
-        </button>
-        <MessageMarkdown className={classNames("content", !isOpen && "hide")} activeDot={active}>{text}</MessageMarkdown>
-    </div>;
+                <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{title}</div>
+                        <RightChevronIconSVG className={classNames(
+                            "w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform",
+                            isOpen && "rotate-90"
+                        )} />
+                    </div>
+                    {!isOpen && (
+                        <MarkdownContent
+                            className="text-sm text-gray-500 dark:text-gray-400 truncate"
+                            dir="auto"
+                            inline
+                        >
+                            {text.slice(-excerptLength)}
+                        </MarkdownContent>
+                    )}
+                </div>
+            </button>
+            {isOpen && (
+                <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700">
+                    <MessageMarkdown className="text-gray-900 dark:text-gray-100" activeDot={active}>
+                        {text}
+                    </MessageMarkdown>
+                </div>
+            )}
+        </div>
+    );
 }
 
 type ModelResponseThoughtProps = {

@@ -2,11 +2,8 @@ import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {withLock} from "lifecycle-utils";
 import semver from "semver";
 
-import "./UpdateBadge.css";
-
 const latestReleaseUrl = "https://github.com/ismailvaliev/akbuzat/releases/latest";
 const checkInterval = 1000 * 60 * 60 * 24;
-
 
 export function UpdateBadge({appVersion, canShowCurrentVersion}: UpdateBadgeProps) {
     const [latestVersion, setLatestVersion] = useState<string | null>(null);
@@ -65,22 +62,24 @@ export function UpdateBadge({appVersion, canShowCurrentVersion}: UpdateBadgeProp
     if (latestVersion == null)
         return null;
 
-    return <div className="updateBadge">
-        {
-            (!releasedVersionIsNewerThanCurrent && appVersion && canShowCurrentVersion) &&
-            <div className="currentVersion"><code>v{appVersion}</code></div>
-        }
-        {
-            (releasedVersionIsNewerThanCurrent && releaseLink != null) &&
-            <a
-                target="_blank"
-                href={releaseLink}
-                className="newVersion"
-            >
-                Version <code className="version">{latestVersion}</code> is available
-            </a>
-        }
-    </div>;
+    return (
+        <div className="flex items-center gap-2">
+            {(!releasedVersionIsNewerThanCurrent && appVersion && canShowCurrentVersion) && (
+                <div className="px-2 py-1 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-900 rounded">
+                    <code>v{appVersion}</code>
+                </div>
+            )}
+            {(releasedVersionIsNewerThanCurrent && releaseLink != null) && (
+                <a
+                    target="_blank"
+                    href={releaseLink}
+                    className="px-2 py-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/50 rounded transition-colors"
+                >
+                    Version <code className="font-mono">v{latestVersion}</code> is available
+                </a>
+            )}
+        </div>
+    );
 }
 
 type UpdateBadgeProps = {

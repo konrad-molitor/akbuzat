@@ -3,9 +3,6 @@ import classNames from "classnames";
 import {AddMessageIconSVG} from "../../../icons/AddMessageIconSVG.tsx";
 import {AbortIconSVG} from "../../../icons/AbortIconSVG.tsx";
 
-import "./InputRow.css";
-
-
 export function InputRow({
     disabled = false, stopGeneration, sendPrompt, onPromptInput, autocompleteInputDraft, autocompleteCompletion, generatingResult
 }: InputRowProps) {
@@ -98,46 +95,54 @@ export function InputRow({
         return autocompleteText;
     }, [autocompleteText]);
 
-    return <div className={classNames("appInputRow", disabled && "disabled")}>
-        <div className="inputContainer">
-            <textarea
-                ref={inputRef}
-                onInput={onInput}
-                onKeyDownCapture={onInputKeyDown}
-                className="input"
-                autoComplete="off"
-                spellCheck
-                disabled={disabled}
-                onScroll={resizeInput}
-                placeholder={
-                    autocompleteText === ""
-                        ? "Type a message..."
-                        : ""
-                }
-            />
-            <div className="autocomplete" ref={autocompleteRef}>
-                <div className={classNames("content", autocompleteText === "" && "hide")}>
-                    <div className="currentText" ref={autocompleteCurrentTextRef} />
-                    <div className="completion">{previewAutocompleteText}</div>
-                    <div className="pressTab">Tab</div>
+    return (
+        <div className={classNames(
+            "flex items-center gap-2",
+            disabled && "opacity-50 pointer-events-none"
+        )}>
+            <div className="relative flex-1">
+                <textarea
+                    ref={inputRef}
+                    onInput={onInput}
+                    onKeyDownCapture={onInputKeyDown}
+                    className="w-full min-h-[44px] max-h-[200px] px-4 py-2 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                    autoComplete="off"
+                    spellCheck
+                    disabled={disabled}
+                    onScroll={resizeInput}
+                    placeholder={
+                        autocompleteText === ""
+                            ? "Type a message..."
+                            : ""
+                    }
+                />
+                <div className="absolute inset-0 pointer-events-none" ref={autocompleteRef}>
+                    <div className={classNames(
+                        "h-full px-4 py-2 text-gray-500 dark:text-gray-400",
+                        autocompleteText === "" && "hidden"
+                    )}>
+                        <div className="invisible" ref={autocompleteCurrentTextRef} />
+                        <div className="text-gray-400 dark:text-gray-500">{previewAutocompleteText}</div>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 px-2 py-1 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded">Tab</div>
+                    </div>
                 </div>
             </div>
+            <button
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                disabled={disabled || stopGeneration == null || !generatingResult}
+                onClick={stopGeneration}
+            >
+                <AbortIconSVG className="w-5 h-5" />
+            </button>
+            <button
+                className="p-2 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                disabled={disabled || inputText === "" || generatingResult}
+                onClick={submitPrompt}
+            >
+                <AddMessageIconSVG className="w-5 h-5" />
+            </button>
         </div>
-        <button
-            className="stopGenerationButton"
-            disabled={disabled || stopGeneration == null || !generatingResult}
-            onClick={stopGeneration}
-        >
-            <AbortIconSVG className="icon" />
-        </button>
-        <button
-            className="sendButton"
-            disabled={disabled || inputText === "" || generatingResult}
-            onClick={submitPrompt}
-        >
-            <AddMessageIconSVG className="icon" />
-        </button>
-    </div>;
+    );
 }
 
 type InputRowProps = {
