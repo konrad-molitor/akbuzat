@@ -55,6 +55,9 @@ function createWindow() {
         void win.loadURL(VITE_DEV_SERVER_URL);
     else
         void win.loadFile(path.join(RENDERER_DIST, "index.html"));
+
+    // Открываем DevTools
+    win.webContents.openDevTools();
 }
 
 // Quit when all windows are closed, except on macOS. There, it's common

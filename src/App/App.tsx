@@ -1,4 +1,6 @@
 import {useCallback, useLayoutEffect, useRef} from "react";
+import {Card, CardBody, CardHeader} from "@heroui/react";
+import {ExclamationTriangleIcon, ArrowPathIcon, ChatBubbleLeftIcon} from "@heroicons/react/24/outline";
 import {llmState} from "../state/llmState.ts";
 import {electronLlmRpc} from "../rpc/llmRpc.ts";
 import {useExternalState} from "../hooks/useExternalState.ts";
@@ -8,9 +10,6 @@ import {DownloadIconSVG} from "../icons/DownloadIconSVG.tsx";
 import {Header} from "./components/Header/Header.tsx";
 import {ChatHistory} from "./components/ChatHistory/ChatHistory.tsx";
 import {InputRow} from "./components/InputRow/InputRow.tsx";
-
-import "./App.css";
-
 
 export function App() {
     const state = useExternalState(llmState);
@@ -39,15 +38,12 @@ export function App() {
     }, []);
 
     useLayoutEffect(() => {
-        // anchor scroll to bottom
-
         function onScroll() {
             const currentScrollTop = document.documentElement.scrollTop;
 
             isScrollAnchoredRef.current = isScrolledToTheBottom() ||
                 currentScrollTop >= lastAnchorScrollTopRef.current;
 
-            // handle scroll animation
             if (isScrollAnchoredRef.current)
                 lastAnchorScrollTopRef.current = currentScrollTop;
         }
@@ -100,135 +96,80 @@ export function App() {
     );
     const showMessage = state.selectedModelFilePath == null || error != null || state.chatSession.simplifiedChat.length === 0;
 
-    return <div className="app">
-        <Header
-            appVersion={state.appVersion}
-            canShowCurrentVersion={state.selectedModelFilePath == null}
-            modelName={state.model.name}
-            loadPercentage={state.model.loadProgress}
-            onLoadClick={openSelectModelFileDialog}
-            onResetChatClick={
-                !showMessage
-                    ? resetChatHistory
-                    : undefined
-            }
-        />
-        {
-            showMessage &&
-            <div className="message">
-                {
-                    error != null &&
-                    <div className="error">
-                        {String(error)}
-                    </div>
+    return (
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 w-full flex flex-col">
+            <Header
+                appVersion={state.appVersion}
+                canShowCurrentVersion={state.selectedModelFilePath == null}
+                modelName={state.model.name}
+                loadPercentage={state.model.loadProgress}
+                onLoadClick={openSelectModelFileDialog}
+                onResetChatClick={
+                    !showMessage
+                        ? resetChatHistory
+                        : undefined
                 }
-                {
-                    loading &&
-                    <div className="loading">
-                        Loading...
-                    </div>
-                }
-                {
-                    (state.selectedModelFilePath == null || state.llama.error != null) &&
-                    <div className="loadModel">
-                        <div className="hint">Click the button above to load a model</div>
-                        <div className="actions">
-                            <a className="starLink" target="_blank" href="https://github.com/ismailvaliev/akbuzat">
-                                <StarIconSVG className="starIcon" />
-                                <div className="text">
-                                    Star <code>Akbuzat</code> on GitHub
-                                </div>
-                            </a>
-
-                            <div className="separator"></div>
-                            <div className="title">DeepSeek R1 Distill Qwen model</div>
-                            <div className="links">
-                                <a
-                                    target="_blank"
-                                    href="https://huggingface.co/mradermacher/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B.Q4_K_M.gguf"
-                                >
-                                    <DownloadIconSVG className="downloadIcon" />
-                                    <div className="text">Get 7B</div>
-                                </a>
-                                <div className="separator" />
-                                <a
-                                    target="_blank"
-                                    href="https://huggingface.co/mradermacher/DeepSeek-R1-Distill-Qwen-14B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-14B.Q4_K_M.gguf"
-                                >
-                                    <DownloadIconSVG className="downloadIcon" />
-                                    <div className="text">Get 14B</div>
-                                </a>
-                                <div className="separator" />
-                                <a
-                                    target="_blank"
-                                    href="https://huggingface.co/mradermacher/DeepSeek-R1-Distill-Qwen-32B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-32B.Q4_K_M.gguf"
-                                >
-                                    <DownloadIconSVG className="downloadIcon" />
-                                    <div className="text">Get 32B</div>
-                                </a>
-                            </div>
-
-                            <div className="separator"></div>
-                            <div className="title">Other models</div>
-                            <div className="links">
-                                <a
-                                    target="_blank"
-                                    href="https://huggingface.co/mradermacher/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/main/Meta-Llama-3.1-8B-Instruct.Q4_K_M.gguf"
-                                >
-                                    <DownloadIconSVG className="downloadIcon" />
-                                    <div className="text">Get Llama 3.1 8B</div>
-                                </a>
-                                <div className="separator" />
-                                <a
-                                    target="_blank"
-                                    href="https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf"
-                                >
-                                    <DownloadIconSVG className="downloadIcon" />
-                                    <div className="text">Get Gemma 2 2B</div>
-                                </a>
-                            </div>
-
-                            <div className="separator"></div>
-                            <a className="browseLink" target="_blank" href="https://huggingface.co/models?pipeline_tag=text-generation&library=gguf&sort=trending">
-                                <SearchIconSVG className="searchIcon" />
-                                <div className="text">Find more models</div>
-                            </a>
-                        </div>
-                    </div>
-                }
-                {
-                    (
-                        !loading &&
-                        state.selectedModelFilePath != null &&
-                        error == null &&
-                        state.chatSession.simplifiedChat.length === 0
-                    ) &&
-                    <div className="typeMessage">
-                        Type a message to start the conversation
-                    </div>
-                }
-            </div>
-        }
-        {
-            !showMessage &&
-            <ChatHistory
-                className="chatHistory"
-                simplifiedChat={state.chatSession.simplifiedChat}
-                generatingResult={generatingResult}
             />
-        }
-        <InputRow
-            disabled={!state.model.loaded || !state.contextSequence.loaded}
-            stopGeneration={
-                generatingResult
-                    ? stopActivePrompt
-                    : undefined
-            }
-            onPromptInput={onPromptInput}
-            sendPrompt={sendPrompt}
-            generatingResult={generatingResult}
-            autocompleteInputDraft={state.chatSession.draftPrompt.prompt}
-            autocompleteCompletion={state.chatSession.draftPrompt.completion}
-        />
-    </div>;
+            <main className="flex-1 w-full px-4 py-8 bg-gray-50 dark:bg-gray-900">
+                {showMessage && (
+                    <Card className="max-w-2xl mx-auto w-full">
+                        <CardBody className="p-6 w-full">
+                            {error != null && (
+                                <div className="flex items-center gap-2 text-red-500 mb-4">
+                                    <ExclamationTriangleIcon className="w-5 h-5" />
+                                    <span>{String(error)}</span>
+                                </div>
+                            )}
+                            {loading && (
+                                <div className="flex items-center gap-2 text-blue-500 mb-4">
+                                    <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                                    <span>Loading...</span>
+                                </div>
+                            )}
+                            {(state.selectedModelFilePath == null || state.llama.error != null) && (
+                                <div className="text-center text-gray-500">
+                                    <p>Click the button above to load a model</p>
+                                </div>
+                            )}
+                            {(
+                                !loading && 
+                                state.selectedModelFilePath != null && 
+                                error == null && 
+                                state.chatSession.simplifiedChat.length === 0
+                            ) && (
+                                <div className="text-center text-gray-500">
+                                    <ChatBubbleLeftIcon className="w-8 h-8 mx-auto mb-2" />
+                                    <p>Type a message to start the conversation</p>
+                                </div>
+                            )}
+                        </CardBody>
+                    </Card>
+                )}
+                {!showMessage && (
+                    <ChatHistory
+                        className="w-full max-w-2xl mx-auto"
+                        simplifiedChat={state.chatSession.simplifiedChat}
+                        generatingResult={generatingResult}
+                    />
+                )}
+                <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+                    <div className="w-full px-4 py-4">
+                        <InputRow
+                            disabled={!state.model.loaded || !state.contextSequence.loaded}
+                            stopGeneration={
+                                generatingResult
+                                    ? stopActivePrompt
+                                    : undefined
+                            }
+                            onPromptInput={onPromptInput}
+                            sendPrompt={sendPrompt}
+                            generatingResult={generatingResult}
+                            autocompleteInputDraft={state.chatSession.draftPrompt.prompt}
+                            autocompleteCompletion={state.chatSession.draftPrompt.completion}
+                        />
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
 }
