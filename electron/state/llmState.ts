@@ -50,6 +50,7 @@ export type LlmState = {
         error?: string
     },
     selectedModelFilePath?: string,
+    lastUsedModelPath?: string,
     availableModels: {
         local: LocalModel[],
         remote: RemoteModel[],
@@ -925,27 +926,56 @@ export const llmFunctions = {
     async loadModelFromLocal(filename: string) {
         const modelPath = path.join(modelDirectoryPath, filename);
         
-        llmState.state = {
-            ...llmState.state,
-            selectedModelFilePath: modelPath,
-            chatSession: {
-                loaded: false,
-                generatingResult: false,
-                simplifiedChat: [],
-                draftPrompt: {
-                    prompt: llmState.state.chatSession.draftPrompt.prompt,
-                    completion: ""
+        try {
+            llmState.state = {
+                ...llmState.state,
+                selectedModelFilePath: modelPath,
+                lastUsedModelPath: modelPath,
+                chatSession: {
+                    loaded: false,
+                    generatingResult: false,
+                    simplifiedChat: [],
+                    draftPrompt: {
+                        prompt: llmState.state.chatSession.draftPrompt.prompt,
+                        completion: ""
+                    }
+                }
+            };
+
+            if (!llmState.state.llama.loaded)
+                await llmFunctions.loadLlama();
+
+            await llmFunctions.loadModel(modelPath);
+            await llmFunctions.createContext();
+            await llmFunctions.createContextSequence();
+            await llmFunctions.chatSession.createChatSession();
+        } catch (err) {
+            console.error("Failed to load model from local file", err);
+            // Reset state on error
+            llmState.state = {
+                ...llmState.state,
+                selectedModelFilePath: undefined,
+                model: {
+                    loaded: false,
+                    error: `Failed to load ${filename}: ${String(err)}`
+                }
+            };
+            
+            // Clean up if model file is corrupted
+            if (String(err).includes("unordered_map::at: key not found") || 
+                String(err).includes("vocabulary") || 
+                String(err).includes("tokenizer")) {
+                console.log(`Model ${filename} appears to be corrupted, deleting...`);
+                try {
+                    await fs.unlink(modelPath);
+                    await llmFunctions.scanLocalModels();
+                } catch (deleteErr) {
+                    console.error("Failed to delete corrupted model", deleteErr);
                 }
             }
-        };
-
-        if (!llmState.state.llama.loaded)
-            await llmFunctions.loadLlama();
-
-        await llmFunctions.loadModel(modelPath);
-        await llmFunctions.createContext();
-        await llmFunctions.createContextSequence();
-        await llmFunctions.chatSession.createChatSession();
+            
+            throw err;
+        }
     },
 
     async unloadModel() {
@@ -1058,6 +1088,38 @@ export const llmFunctions = {
         if (errors.length > 0) {
             throw new Error(`Failed to delete some models:\n${errors.join('\n')}`);
         }
+    },
+
+    getRecommendedModel(): {type: 'local' | 'remote' | 'download', model?: LocalModel | RemoteModel, downloadUrl?: string} {
+        const {local} = llmState.state.availableModels;
+        const lastUsedPath = llmState.state.lastUsedModelPath;
+
+        // If we have a last used model and it exists locally, recommend it
+        if (lastUsedPath) {
+            const lastUsedModel = local.find(m => m.path === lastUsedPath);
+            if (lastUsedModel) {
+                return {type: 'local', model: lastUsedModel};
+            }
+        }
+
+        // If we have exactly one local model, recommend it
+        if (local.length === 1) {
+            return {type: 'local', model: local[0]};
+        }
+
+        // If we have multiple local models, recommend the most recently modified
+        if (local.length > 1) {
+            const mostRecent = local.reduce((latest, current) => {
+                return current.lastModified > latest.lastModified ? current : latest;
+            });
+            return {type: 'local', model: mostRecent};
+        }
+
+        // If no local models, recommend SmolLM2 download
+        return {
+            type: 'download',
+            downloadUrl: 'https://huggingface.co/HuggingFaceTB/SmolLM2-1.7B-Instruct-GGUF/resolve/main/smollm2-1.7b-instruct-q4_k_m.gguf'
+        };
     }
 } as const;
 

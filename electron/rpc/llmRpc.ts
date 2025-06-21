@@ -62,6 +62,25 @@ export class ElectronLlmRpc {
             await llmFunctions.scanLocalModels();
             await llmFunctions.loadDefaultModels(); 
         },
+        getRecommendedModel: llmFunctions.getRecommendedModel,
+        async downloadSmolLM() {
+            const smolLMModel: RemoteModel = {
+                id: 'HuggingFaceTB/SmolLM2-1.7B-Instruct-GGUF',
+                name: 'SmolLM2 1.7B Instruct',
+                author: 'HuggingFaceTB',
+                downloads: 9243,
+                likes: 42,
+                tags: ['chat', 'instruct', 'small'],
+                description: 'State-of-the-art compact LLM for on-device applications',
+                url: 'https://huggingface.co/HuggingFaceTB/SmolLM2-1.7B-Instruct-GGUF',
+                files: [{
+                    filename: 'smollm2-1.7b-instruct-q4_k_m.gguf',
+                    size: 1060000000, // approximately 1.06 GB
+                    downloadUrl: 'https://huggingface.co/HuggingFaceTB/SmolLM2-1.7B-Instruct-GGUF/resolve/main/smollm2-1.7b-instruct-q4_k_m.gguf'
+                }]
+            };
+            await llmFunctions.downloadAndLoadModel(smolLMModel, 0);
+        },
         scanLocalModels: llmFunctions.scanLocalModels,
         searchHuggingFaceModels: llmFunctions.searchHuggingFaceModels,
         downloadAndLoadModel: llmFunctions.downloadAndLoadModel,
