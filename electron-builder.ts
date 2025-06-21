@@ -42,7 +42,7 @@ export default {
                 arch: ["x64"]
             }
         ],
-        artifactName: "${name}.Windows.${version}.${arch}"
+        artifactName: "${name}.Windows.${version}.${arch}.zip"
     },
 
     linux: {
