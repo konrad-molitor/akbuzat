@@ -5,9 +5,6 @@ import {llmState} from "../state/llmState.ts";
 import {electronLlmRpc} from "../rpc/llmRpc.ts";
 import {useExternalState} from "../hooks/useExternalState.ts";
 import {LocalModel, RemoteModel} from "../../electron/state/llmState.js";
-import {SearchIconSVG} from "../icons/SearchIconSVG.tsx";
-import {StarIconSVG} from "../icons/StarIconSVG.tsx";
-import {DownloadIconSVG} from "../icons/DownloadIconSVG.tsx";
 import {Header} from "./components/Header/Header.tsx";
 import {ChatHistory} from "./components/ChatHistory/ChatHistory.tsx";
 import {InputRow} from "./components/InputRow/InputRow.tsx";
@@ -115,6 +112,14 @@ export function App() {
         await electronLlmRpc.unloadModel();
     }, []);
 
+    const handleModelDelete = useCallback(async (filename: string) => {
+        await electronLlmRpc.deleteModel(filename);
+    }, []);
+
+    const handleModelDeleteMultiple = useCallback(async (filenames: string[]) => {
+        await electronLlmRpc.deleteMultipleModels(filenames);
+    }, []);
+
     const error = state.llama.error ?? state.model.error ?? state.context.error ?? state.contextSequence.error;
     const loading = state.selectedModelFilePath != null && error == null && (
         !state.model.loaded || !state.llama.loaded || !state.context.loaded || !state.contextSequence.loaded || !state.chatSession.loaded
@@ -138,6 +143,8 @@ export function App() {
                 onModelSelect={handleModelSelect}
                 onModelSearch={handleModelSearch}
                 onModelUnload={handleModelUnload}
+                onModelDelete={handleModelDelete}
+                onModelDeleteMultiple={handleModelDeleteMultiple}
                 showModelSelector={true}
                 className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm"
             />

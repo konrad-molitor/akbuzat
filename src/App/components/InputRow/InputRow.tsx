@@ -1,7 +1,6 @@
 import {useCallback, useMemo, useRef, useState} from "react";
+import {PaperAirplaneIcon, XMarkIcon} from "@heroicons/react/24/outline";
 import classNames from "classnames";
-import {AddMessageIconSVG} from "../../../icons/AddMessageIconSVG.tsx";
-import {AbortIconSVG} from "../../../icons/AbortIconSVG.tsx";
 
 export function InputRow({
     disabled = false, stopGeneration, sendPrompt, onPromptInput, autocompleteInputDraft, autocompleteCompletion, generatingResult
@@ -132,14 +131,14 @@ export function InputRow({
                 disabled={disabled || stopGeneration == null || !generatingResult}
                 onClick={stopGeneration}
             >
-                <AbortIconSVG className="w-5 h-5" />
+                <XMarkIcon className="w-5 h-5" />
             </button>
             <button
                 className="p-2 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 disabled={disabled || inputText === "" || generatingResult}
                 onClick={submitPrompt}
             >
-                <AddMessageIconSVG className="w-5 h-5" />
+                <PaperAirplaneIcon className="w-5 h-5" />
             </button>
         </div>
     );

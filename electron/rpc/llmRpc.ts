@@ -66,7 +66,9 @@ export class ElectronLlmRpc {
         searchHuggingFaceModels: llmFunctions.searchHuggingFaceModels,
         downloadAndLoadModel: llmFunctions.downloadAndLoadModel,
         loadModelFromLocal: llmFunctions.loadModelFromLocal,
-        unloadModel: llmFunctions.unloadModel
+        unloadModel: llmFunctions.unloadModel,
+        deleteModel: llmFunctions.deleteModel,
+        deleteMultipleModels: llmFunctions.deleteMultipleModels
     } as const;
 
     public constructor(window: BrowserWindow) {

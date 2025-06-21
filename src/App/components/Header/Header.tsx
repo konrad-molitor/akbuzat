@@ -1,9 +1,9 @@
-import {CSSProperties} from "react";
+import {CSSProperties, useState} from "react";
 import classNames from "classnames";
-import {LoadFileIconSVG} from "../../../icons/LoadFileIconSVG.tsx";
-import {DeleteIconSVG} from "../../../icons/DeleteIconSVG.tsx";
+import {ArrowDownIcon, BackspaceIcon, CogIcon, CpuChipIcon} from "@heroicons/react/24/outline";
 import {LlmState, LocalModel, RemoteModel} from "../../../../electron/state/llmState.js";
 import {ModelSelector} from "../ModelSelector/ModelSelector.tsx";
+import {ModelManagerModal} from "../ModelManagerModal/ModelManagerModal.tsx";
 import {UpdateBadge} from "./components/UpdateBadge.js";
 
 export function Header({
@@ -17,12 +17,22 @@ export function Header({
     onModelSelect,
     onModelSearch,
     onModelUnload,
+    onModelDelete,
+    onModelDeleteMultiple,
     showModelSelector = false,
     className
 }: HeaderProps) {
+    const [isModelManagerOpen, setIsModelManagerOpen] = useState(false);
+
     return (
-        <div className={classNames("flex items-center justify-between w-full px-6 py-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm", className)}>
-            <div className="flex items-center gap-6">
+        <div className={classNames("grid grid-cols-3 items-center w-full px-6 py-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm", className)}>
+            {/* Left section - placeholder for future app icon */}
+            <div className="flex items-center justify-start">
+                {/* Reserved for app icon */}
+            </div>
+            
+            {/* Center section - Model selector */}
+            <div className="flex items-center justify-center">
                 {showModelSelector && llmState ? (
                     <ModelSelector
                         state={llmState}
@@ -44,9 +54,7 @@ export function Header({
 
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-sm">
-                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                                </svg>
+                                <CpuChipIcon className="w-4 h-4 text-white" />
                             </div>
                             <div>
                                 <div className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">
@@ -67,23 +75,74 @@ export function Header({
                                 onClick={onResetChatClick}
                                 title="Reset Chat"
                             >
-                                <DeleteIconSVG className="w-4 h-4" />
+                                <BackspaceIcon className="w-4 h-4" />
                             </button>
                             <button 
                                 className="p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors relative z-10 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
                                 onClick={onLoadClick}
                                 title="Load Model File"
                             >
-                                <LoadFileIconSVG className="w-4 h-4" />
+                                <ArrowDownIcon className="w-4 h-4" />
                             </button>
                         </div>
                     </div>
                 )}
             </div>
-            <UpdateBadge
-                appVersion={appVersion}
-                canShowCurrentVersion={canShowCurrentVersion}
-            />
+            
+            {/* Right section - Settings and version */}
+            <div className="flex items-center justify-end gap-4">
+                {/* Model management button - always visible when llmState exists */}
+                {llmState && (
+                    <button
+                        className="flex-shrink-0 p-4 h-16 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg transition-colors"
+                        onClick={() => setIsModelManagerOpen(true)}
+                        title="Manage Models"
+                    >
+                        <CogIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    </button>
+                )}
+                
+                <UpdateBadge
+                    appVersion={appVersion}
+                    canShowCurrentVersion={canShowCurrentVersion}
+                />
+            </div>
+            
+            {/* Modal - always available when llmState exists */}
+            {llmState && (
+                <ModelManagerModal
+                    isOpen={isModelManagerOpen}
+                    onClose={() => setIsModelManagerOpen(false)}
+                    localModels={llmState.availableModels.local}
+                    currentModelPath={llmState.selectedModelFilePath}
+                    onLoadModel={async (filename) => {
+                        await onModelSelect?.({
+                            id: filename,
+                            name: llmState.availableModels.local.find(m => m.id === filename)?.name || filename,
+                            path: llmState.availableModels.local.find(m => m.id === filename)?.path || filename,
+                            size: llmState.availableModels.local.find(m => m.id === filename)?.size || 0,
+                            lastModified: llmState.availableModels.local.find(m => m.id === filename)?.lastModified || new Date()
+                        }, 'local');
+                        setIsModelManagerOpen(false);
+                    }}
+                    onDeleteModel={async (filename) => {
+                        try {
+                            await onModelDelete?.(filename);
+                        } catch (err) {
+                            console.error('Failed to delete model:', err);
+                            alert(`Failed to delete model: ${err}`);
+                        }
+                    }}
+                    onDeleteMultipleModels={async (filenames) => {
+                        try {
+                            await onModelDeleteMultiple?.(filenames);
+                        } catch (err) {
+                            console.error('Failed to delete models:', err);
+                            alert(`Failed to delete models: ${err}`);
+                        }
+                    }}
+                />
+            )}
         </div>
     );
 }
@@ -99,6 +158,8 @@ type HeaderProps = {
     onModelSelect?: (model: LocalModel | RemoteModel, type: 'local' | 'remote') => void,
     onModelSearch?: (query: string) => void,
     onModelUnload?: () => void,
+    onModelDelete?: (filename: string) => void,
+    onModelDeleteMultiple?: (filenames: string[]) => void,
     showModelSelector?: boolean,
     className?: string
 };
