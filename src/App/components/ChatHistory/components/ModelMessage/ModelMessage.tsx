@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import {MessageMarkdown} from "../../../MessageMarkdown/MessageMarkdown.js";
 import {SimplifiedModelChatItem} from "../../../../../../electron/state/llmState.js";
 import {ModelResponseThought} from "../ModelResponseThought/ModelResponseThought.js";
@@ -8,8 +9,13 @@ export function ModelMessage({modelMessage, active}: ModelMessageProps) {
         <div className="relative p-4 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
             {modelMessage.message.map((message, responseIndex) => {
                 const isLastMessage = responseIndex === modelMessage.message.length - 1;
+                const isThought = message.type === "segment" && message.segmentType === "thought";
+                const prevMessage = modelMessage.message[responseIndex - 1];
+                const hasThoughtBefore = responseIndex > 0 && 
+                    prevMessage?.type === "segment" && 
+                    (prevMessage as any)?.segmentType === "thought";
 
-                if (message.type === "segment" && message.segmentType === "thought") {
+                if (isThought) {
                     return (
                         <ModelResponseThought
                             key={responseIndex}
@@ -28,7 +34,10 @@ export function ModelMessage({modelMessage, active}: ModelMessageProps) {
                     <MessageMarkdown
                         key={responseIndex}
                         activeDot={isLastMessage && active}
-                        className="text-gray-900 dark:text-gray-100"
+                        className={classNames(
+                            "text-gray-900 dark:text-gray-100",
+                            hasThoughtBefore && "mt-4"
+                        )}
                     >
                         {message.text}
                     </MessageMarkdown>

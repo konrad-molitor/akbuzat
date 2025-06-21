@@ -1,5 +1,6 @@
 import {useState, useCallback, useMemo} from "react";
-import {ChevronRightIcon} from "@heroicons/react/24/outline";
+import {ChevronRightIcon, ChatBubbleLeftEllipsisIcon} from "@heroicons/react/24/outline";
+import {Spinner, Tooltip} from "@heroui/react";
 import classNames from "classnames";
 import prettyMs from "pretty-ms";
 import {MessageMarkdown} from "../../../MessageMarkdown/MessageMarkdown.js";
@@ -14,19 +15,15 @@ export function ModelResponseThought({text, active, duration}: ModelResponseThou
         setIsOpen((isOpen) => !isOpen);
     }, []);
 
-    const title = useMemo(() => {
-        if (active)
-            return "Thinking";
-        else if (duration != null) {
-            const formattedDuration = prettyMs(duration, {
+    const formattedDuration = useMemo(() => {
+        if (duration != null) {
+            return prettyMs(duration, {
                 secondsDecimalDigits: duration < 1000 * 10 ? 2 : 0,
                 verbose: true
             });
-            return `Thought for ${formattedDuration}`;
         }
-
-        return "Finished thinking";
-    }, [active, duration]);
+        return null;
+    }, [duration]);
 
     return (
         <div className={classNames(
@@ -40,7 +37,13 @@ export function ModelResponseThought({text, active, duration}: ModelResponseThou
             >
                 <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{title}</div>
+                        {active ? (
+                            <Spinner size="sm" color="default" />
+                        ) : (
+                            <Tooltip content={formattedDuration ? `Thought for ${formattedDuration}` : "Finished thinking"}>
+                                <ChatBubbleLeftEllipsisIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                            </Tooltip>
+                        )}
                         <ChevronRightIcon className={classNames(
                             "w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform",
                             isOpen && "rotate-90"
