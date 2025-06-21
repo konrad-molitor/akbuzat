@@ -1,6 +1,6 @@
 import {CSSProperties, useState} from "react";
 import classNames from "classnames";
-import {ArrowDownIcon, BackspaceIcon, CogIcon} from "@heroicons/react/24/outline";
+import {ArrowDownIcon, BackspaceIcon, CogIcon, CpuChipIcon} from "@heroicons/react/24/outline";
 import {LlmState, LocalModel, RemoteModel} from "../../../../electron/state/llmState.js";
 import {ModelSelector} from "../ModelSelector/ModelSelector.tsx";
 import {ModelManagerModal} from "../ModelManagerModal/ModelManagerModal.tsx";
@@ -54,9 +54,7 @@ export function Header({
 
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-sm">
-                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                                </svg>
+                                <CpuChipIcon className="w-4 h-4 text-white" />
                             </div>
                             <div>
                                 <div className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">

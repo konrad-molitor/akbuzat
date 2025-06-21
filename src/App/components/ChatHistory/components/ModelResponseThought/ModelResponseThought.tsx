@@ -1,8 +1,8 @@
+import {useState, useCallback, useMemo} from "react";
+import {ChevronRightIcon} from "@heroicons/react/24/outline";
 import classNames from "classnames";
-import {useCallback, useMemo, useState} from "react";
-import prettyMilliseconds from "pretty-ms";
+import prettyMs from "pretty-ms";
 import {MessageMarkdown} from "../../../MessageMarkdown/MessageMarkdown.js";
-import {RightChevronIconSVG} from "../../../../../icons/RightChevronIconSVG.js";
 import {MarkdownContent} from "../../../MarkdownContent/MarkdownContent.js";
 
 const excerptLength = 1024;
@@ -18,7 +18,7 @@ export function ModelResponseThought({text, active, duration}: ModelResponseThou
         if (active)
             return "Thinking";
         else if (duration != null) {
-            const formattedDuration = prettyMilliseconds(duration, {
+            const formattedDuration = prettyMs(duration, {
                 secondsDecimalDigits: duration < 1000 * 10 ? 2 : 0,
                 verbose: true
             });
@@ -41,7 +41,7 @@ export function ModelResponseThought({text, active, duration}: ModelResponseThou
                 <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                         <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{title}</div>
-                        <RightChevronIconSVG className={classNames(
+                        <ChevronRightIcon className={classNames(
                             "w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform",
                             isOpen && "rotate-90"
                         )} />

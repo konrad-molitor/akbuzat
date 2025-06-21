@@ -1,8 +1,6 @@
 import React, {useState, useCallback, useMemo} from "react";
 import {Autocomplete, AutocompleteItem, Chip, Avatar, Spinner, Progress} from "@heroui/react";
-import {SearchIconSVG} from "../../../icons/SearchIconSVG.tsx";
-import {DownloadIconSVG} from "../../../icons/DownloadIconSVG.tsx";
-import {CheckIconSVG} from "../../../icons/CheckIconSVG.tsx";
+import {MagnifyingGlassIcon, ArrowDownTrayIcon, CheckIcon, TrashIcon} from "@heroicons/react/24/outline";
 import {LlmState, LocalModel, RemoteModel} from "../../../../electron/state/llmState.js";
 
 function parseModelName(filename: string): string {
@@ -206,7 +204,7 @@ export function ModelSelector({
                 menuTrigger="focus"
                 aria-label="Search and select AI models"
                 startContent={
-                    <SearchIconSVG className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                    <MagnifyingGlassIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
                 }
                 endContent={
                     <div className="flex items-center gap-2 flex-shrink-0">
@@ -242,7 +240,7 @@ export function ModelSelector({
                         </div>
                     ) : allModels.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
-                            <SearchIconSVG className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                            <MagnifyingGlassIcon className="w-12 h-12 mx-auto mb-3 opacity-50" />
                             <p className="text-base font-medium">No models found</p>
                             <p className="text-sm text-gray-400 mt-1">Try a different search term</p>
                         </div>
@@ -298,7 +296,7 @@ export function ModelSelector({
                                                 size="sm"
                                                 color="primary"
                                                 variant="flat"
-                                                startContent={<CheckIconSVG className="w-3 h-3" />}
+                                                startContent={<CheckIcon className="w-3 h-3" />}
                                                 classNames={{
                                                     base: "h-6 px-3 min-w-max bg-blue-100 dark:bg-blue-900/30",
                                                     content: "text-sm font-semibold text-blue-700 dark:text-blue-300"
@@ -341,7 +339,7 @@ export function ModelSelector({
                                                 size="sm"
                                                 color="default"
                                                 variant="bordered"
-                                                startContent={<DownloadIconSVG className="w-3 h-3" />}
+                                                startContent={<ArrowDownTrayIcon className="w-3 h-3" />}
                                                 classNames={{
                                                     base: "h-6 px-3 min-w-max border-gray-300 dark:border-gray-600",
                                                     content: "text-sm font-medium text-gray-600 dark:text-gray-400"
@@ -388,9 +386,7 @@ export function ModelSelector({
                     className="flex-shrink-0 p-4 h-16 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Unload current model"
                 >
-                    <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
+                    <TrashIcon className="w-6 h-6 text-red-600 dark:text-red-400" />
                 </button>
             )}
         </div>
