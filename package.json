@@ -10,12 +10,16 @@
     "email": "molitor.konrad@gmail.com"
   },
   "scripts": {
-    "postinstall": "npm run models:pull",
+    "postinstall": "npm run models:pull:conditional",
     "models:pull": "node-llama-cpp pull --dir ./models \"hf:Qwen/Qwen3-4B-GGUF:Q8_0\"",
+    "models:pull:conditional": "node -e \"if (process.env.SKIP_MODEL_DOWNLOAD !== 'true') { require('child_process').execSync('npm run models:pull', {stdio: 'inherit'}); } else { console.log('Пропускаем скачивание модели в CI'); }\"",
     "start": "vite dev",
     "start:build": "electron ./dist-electron",
     "prebuild": "rimraf ./dist ./dist-electron ./release",
     "build": "tsc && vite build && electron-builder --config ./electron-builder.ts",
+    "build:win": "tsc && vite build && electron-builder --win --config ./electron-builder.ts",
+    "build:win-zip": "tsc && vite build && electron-builder --win dir --x64 --config ./electron-builder.ts --publish=never",
+    "build:linux-tar": "tsc && vite build && electron-builder --linux tar.gz --x64 --config ./electron-builder.ts --publish=never",
     "lint": "npm run lint:eslint",
     "lint:eslint": "eslint --report-unused-disable-directives .",
     "format": "npm run lint:eslint -- --fix",

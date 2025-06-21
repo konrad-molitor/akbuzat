@@ -1,0 +1,144 @@
+name: Build
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build-electron:
+    name: Build Electron app - ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: "Windows"
+            os: windows-2022
+            target: "win"
+            arch: "x64"
+          - name: "Ubuntu"
+            os: ubuntu-22.04
+            target: "linux"
+            arch: "x64"
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable Corepack for Yarn
+        run: corepack enable
+
+      - name: Cache node-llama-cpp binaries
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/node-llama-cpp
+            ~/AppData/Local/node-llama-cpp
+            ~/Library/Caches/node-llama-cpp
+          key: ${{ runner.os }}-${{ runner.arch }}-node-llama-cpp-${{ hashFiles('package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-node-llama-cpp-
+
+      - name: Install dependencies on Ubuntu
+        if: matrix.config.name == 'Ubuntu'
+        run: |
+          # Обновляем репозитории
+          sudo apt-get update
+          
+          # Устанавливаем компиляторы и инструменты сборки
+          sudo apt-get install -y \
+            build-essential \
+            gcc \
+            g++ \
+            cmake \
+            make \
+            python3 \
+            python3-pip \
+            pkg-config \
+            libarchive-tools \
+            rpm
+          
+          # Устанавливаем snapcraft для создания snap-пакетов если нужно
+          sudo snap install snapcraft --classic
+          
+          # Проверяем что все инструменты установлены
+          gcc --version
+          g++ --version
+          cmake --version
+          python3 --version
+
+      - name: Install dependencies on Windows
+        if: matrix.config.name == 'Windows'
+        run: |
+          # Устанавливаем основные инструменты через Chocolatey
+          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
+          choco install python3 -y
+          choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.CMake.Project --add Microsoft.VisualStudio.Component.VC.ATL --add Microsoft.VisualStudio.Component.VC.ATLMFC --add Microsoft.VisualStudio.Component.Windows10SDK --add Microsoft.VisualStudio.Component.VC.CoreBuildTools" -y
+          
+          # Проверяем что все инструменты установлены
+          cmake --version
+          python --version
+          
+          # Устанавливаем переменные окружения для Visual Studio
+          echo "CMAKE_GENERATOR=Visual Studio 17 2022" >> $env:GITHUB_ENV
+          echo "CMAKE_GENERATOR_PLATFORM=x64" >> $env:GITHUB_ENV
+
+      - name: Install modules
+        run: yarn install --frozen-lockfile
+        env:
+          # Пропускаем скачивание модели в CI
+          SKIP_MODEL_DOWNLOAD: "true"
+          # Общие переменные для сборки нативных модулей
+          npm_config_build_from_source: "true"
+          # Переменные для Windows
+          npm_config_msvs_version: "2022"
+          npm_config_target_arch: "x64"
+          # Переменные для сборки node-llama-cpp
+          NODE_LLAMA_CPP_CMAKE_OPTION_GGML_NATIVE: "OFF"
+          NODE_LLAMA_CPP_CMAKE_OPTION_GGML_STATIC: "ON"
+          NODE_LLAMA_CPP_CMAKE_OPTION_GGML_LTO: "ON"
+
+      - name: Build electron app for Windows (zip only)
+        if: matrix.config.name == 'Windows'
+        id: build-win
+        shell: bash
+        timeout-minutes: 480
+        run: |
+          # Собираем только zip для Windows x64
+          yarn run build:win-zip
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
+          # Принудительное использование x64 архитектуры
+          npm_config_target_arch: "x64"
+          npm_config_target_platform: "win32"
+
+      - name: Build electron app for Linux (tar.gz only)
+        if: matrix.config.name == 'Ubuntu'
+        id: build-linux
+        shell: bash
+        timeout-minutes: 480
+        run: |
+          # Используем готовый скрипт для сборки Linux tar.gz
+          yarn run build:linux-tar
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
+
+      - name: Upload Windows artifacts
+        if: matrix.config.name == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          include-hidden-files: true
+          name: "akbuzat-windows-x64"
+          path: "./release/win-unpacked/"
+
+      - name: Upload Linux artifacts
+        if: matrix.config.name == 'Ubuntu'
+        uses: actions/upload-artifact@v4
+        with:
+          include-hidden-files: true
+          name: "akbuzat-linux-x64-tar-gz"
+          path: "./release/*.tar.gz" 
