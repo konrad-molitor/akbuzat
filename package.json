@@ -10,8 +10,9 @@
     "email": "molitor.konrad@gmail.com"
   },
   "scripts": {
-    "postinstall": "npm run models:pull",
+    "postinstall": "npm run models:pull:conditional",
     "models:pull": "node-llama-cpp pull --dir ./models \"hf:Qwen/Qwen3-4B-GGUF:Q8_0\"",
+    "models:pull:conditional": "node -e \"if (process.env.SKIP_MODEL_DOWNLOAD !== 'true') { require('child_process').execSync('npm run models:pull', {stdio: 'inherit'}); } else { console.log('Пропускаем скачивание модели в CI'); }\"",
     "start": "vite dev",
     "start:build": "electron ./dist-electron",
     "prebuild": "rimraf ./dist ./dist-electron ./release",

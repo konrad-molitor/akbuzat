@@ -85,6 +85,8 @@ jobs:
       - name: Install modules
         run: yarn install --frozen-lockfile
         env:
+          # Пропускаем скачивание модели в CI
+          SKIP_MODEL_DOWNLOAD: "true"
           # Общие переменные для сборки нативных модулей
           npm_config_build_from_source: "true"
           # Переменные для Windows
