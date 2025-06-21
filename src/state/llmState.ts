@@ -7,6 +7,16 @@ export const llmState = new State<LlmState>({
     llama: {
         loaded: false
     },
+    availableModels: {
+        local: [],
+        remote: [],
+        loading: false,
+        searchQuery: "",
+        searchResults: []
+    },
+    modelDownload: {
+        downloading: false
+    },
     model: {
         loaded: false
     },

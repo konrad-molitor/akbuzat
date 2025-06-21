@@ -2,7 +2,7 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import {BrowserWindow, dialog} from "electron";
 import {createElectronSideBirpc} from "../utils/createElectronSideBirpc.ts";
-import {llmFunctions, llmState} from "../state/llmState.ts";
+import {llmFunctions, llmState, type RemoteModel} from "../state/llmState.ts";
 import type {RenderedFunctions} from "../../src/rpc/llmRpc.ts";
 
 const modelDirectoryPath = path.join(process.cwd(), "models");
@@ -55,7 +55,18 @@ export class ElectronLlmRpc {
         setDraftPrompt: llmFunctions.chatSession.setDraftPrompt,
         prompt: llmFunctions.chatSession.prompt,
         stopActivePrompt: llmFunctions.chatSession.stopActivePrompt,
-        resetChatHistory: llmFunctions.chatSession.resetChatHistory
+        resetChatHistory: llmFunctions.chatSession.resetChatHistory,
+        
+        // New model management functions
+        async initializeModels() {
+            await llmFunctions.scanLocalModels();
+            await llmFunctions.loadDefaultModels(); 
+        },
+        scanLocalModels: llmFunctions.scanLocalModels,
+        searchHuggingFaceModels: llmFunctions.searchHuggingFaceModels,
+        downloadAndLoadModel: llmFunctions.downloadAndLoadModel,
+        loadModelFromLocal: llmFunctions.loadModelFromLocal,
+        unloadModel: llmFunctions.unloadModel
     } as const;
 
     public constructor(window: BrowserWindow) {

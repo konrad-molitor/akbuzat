@@ -2,41 +2,83 @@ import {CSSProperties} from "react";
 import classNames from "classnames";
 import {LoadFileIconSVG} from "../../../icons/LoadFileIconSVG.tsx";
 import {DeleteIconSVG} from "../../../icons/DeleteIconSVG.tsx";
+import {LlmState, LocalModel, RemoteModel} from "../../../../electron/state/llmState.js";
+import {ModelSelector} from "../ModelSelector/ModelSelector.tsx";
 import {UpdateBadge} from "./components/UpdateBadge.js";
 
-export function Header({appVersion, canShowCurrentVersion, modelName, onLoadClick, loadPercentage, onResetChatClick}: HeaderProps) {
+export function Header({
+    appVersion, 
+    canShowCurrentVersion, 
+    modelName, 
+    onLoadClick, 
+    loadPercentage, 
+    onResetChatClick,
+    llmState,
+    onModelSelect,
+    onModelSearch,
+    onModelUnload,
+    showModelSelector = false,
+    className
+}: HeaderProps) {
     return (
-        <div className="flex items-center justify-between w-full px-4 py-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-            <div className="relative flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-900">
-                <div
-                    className={classNames(
-                        "absolute inset-0 rounded-lg bg-blue-500/20 dark:bg-blue-500/10 transition-all duration-300",
-                        loadPercentage === 1 && "opacity-0"
-                    )}
-                    style={{
-                        width: loadPercentage != null ? `${loadPercentage * 100}%` : undefined
-                    } as CSSProperties}
-                />
-
-                {modelName != null ? (
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{modelName}</div>
+        <div className={classNames("flex items-center justify-between w-full px-6 py-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm", className)}>
+            <div className="flex items-center gap-6">
+                {showModelSelector && llmState ? (
+                    <ModelSelector
+                        state={llmState}
+                        onModelSelect={onModelSelect}
+                        onSearchChange={onModelSearch}
+                        onModelUnload={onModelUnload}
+                    />
                 ) : (
-                    <div className="text-sm text-gray-500 dark:text-gray-400">No model loaded</div>
-                )}
+                    <div className="relative flex items-center gap-3 px-6 py-3 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div
+                            className={classNames(
+                                "absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/5 dark:to-purple-500/5 transition-all duration-300",
+                                loadPercentage === 1 && "opacity-0"
+                            )}
+                            style={{
+                                width: loadPercentage != null ? `${loadPercentage * 100}%` : undefined
+                            } as CSSProperties}
+                        />
 
-                <button
-                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors relative z-10"
-                    disabled={onResetChatClick == null}
-                    onClick={onResetChatClick}
-                >
-                    <DeleteIconSVG className="w-5 h-5" />
-                </button>
-                <button 
-                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors relative z-10"
-                    onClick={onLoadClick}
-                >
-                    <LoadFileIconSVG className="w-5 h-5" />
-                </button>
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-sm">
+                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">
+                                    Model Status
+                                </div>
+                                {modelName != null ? (
+                                    <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">{modelName}</div>
+                                ) : (
+                                    <div className="text-sm font-medium text-gray-500 dark:text-gray-400">No model loaded</div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 ml-auto">
+                            <button
+                                className="p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors relative z-10 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                                disabled={onResetChatClick == null}
+                                onClick={onResetChatClick}
+                                title="Reset Chat"
+                            >
+                                <DeleteIconSVG className="w-4 h-4" />
+                            </button>
+                            <button 
+                                className="p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors relative z-10 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                onClick={onLoadClick}
+                                title="Load Model File"
+                            >
+                                <LoadFileIconSVG className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
             <UpdateBadge
                 appVersion={appVersion}
@@ -52,5 +94,11 @@ type HeaderProps = {
     modelName?: string,
     onLoadClick?(): void,
     loadPercentage?: number,
-    onResetChatClick?(): void
+    onResetChatClick?(): void,
+    llmState?: LlmState,
+    onModelSelect?: (model: LocalModel | RemoteModel, type: 'local' | 'remote') => void,
+    onModelSearch?: (query: string) => void,
+    onModelUnload?: () => void,
+    showModelSelector?: boolean,
+    className?: string
 };
