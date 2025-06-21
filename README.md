@@ -13,6 +13,22 @@ Akbuzat ([winged horse from bashkir mythology](https://en.wikipedia.org/wiki/Akb
 - RAG (Retrieval-Augmented Generation)
 - Secure data processing
 
+## Download
+
+[![GitHub release](https://img.shields.io/github/v/release/yourusername/akbuzat?include_prereleases&label=Latest%20Release)](https://github.com/yourusername/akbuzat/releases/latest)
+[![Build Status](https://github.com/yourusername/akbuzat/workflows/Build/badge.svg)](https://github.com/yourusername/akbuzat/actions)
+
+### Pre-built Binaries
+
+Download the latest version of the application from [Releases](https://github.com/yourusername/akbuzat/releases):
+
+- **Windows (x64)**: `akbuzat-windows-x64.zip`
+- **Linux (x64)**: `akbuzat-linux-x64.tar.gz`
+
+### Automatic Builds
+
+Every commit to the `main` branch automatically creates a new release with the latest version of the application.
+
 ## Get started
 
 Install dependencies:
