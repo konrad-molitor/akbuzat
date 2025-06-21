@@ -1,9 +1,10 @@
-import {useCallback, useLayoutEffect, useRef} from "react";
+import {useCallback, useLayoutEffect, useRef, useEffect} from "react";
 import {Card, CardBody, CardHeader} from "@heroui/react";
 import {ExclamationTriangleIcon, ArrowPathIcon, ChatBubbleLeftIcon} from "@heroicons/react/24/outline";
 import {llmState} from "../state/llmState.ts";
 import {electronLlmRpc} from "../rpc/llmRpc.ts";
 import {useExternalState} from "../hooks/useExternalState.ts";
+import {LocalModel, RemoteModel} from "../../electron/state/llmState.js";
 import {SearchIconSVG} from "../icons/SearchIconSVG.tsx";
 import {StarIconSVG} from "../icons/StarIconSVG.tsx";
 import {DownloadIconSVG} from "../icons/DownloadIconSVG.tsx";
@@ -90,6 +91,30 @@ export function App() {
         void electronLlmRpc.setDraftPrompt(currentText);
     }, []);
 
+    // Initialize models when app starts
+    useEffect(() => {
+        void electronLlmRpc.initializeModels();
+    }, []);
+
+    // Model selector handlers
+    const handleModelSelect = useCallback(async (model: LocalModel | RemoteModel, type: 'local' | 'remote') => {
+        if (type === 'local') {
+            const localModel = model as LocalModel;
+            await electronLlmRpc.loadModelFromLocal(localModel.id);
+        } else {
+            const remoteModel = model as RemoteModel;
+            await electronLlmRpc.downloadAndLoadModel(remoteModel);
+        }
+    }, []);
+
+    const handleModelSearch = useCallback((query: string) => {
+        void electronLlmRpc.searchHuggingFaceModels(query);
+    }, []);
+
+    const handleModelUnload = useCallback(async () => {
+        await electronLlmRpc.unloadModel();
+    }, []);
+
     const error = state.llama.error ?? state.model.error ?? state.context.error ?? state.contextSequence.error;
     const loading = state.selectedModelFilePath != null && error == null && (
         !state.model.loaded || !state.llama.loaded || !state.context.loaded || !state.contextSequence.loaded || !state.chatSession.loaded
@@ -109,8 +134,14 @@ export function App() {
                         ? resetChatHistory
                         : undefined
                 }
+                llmState={state}
+                onModelSelect={handleModelSelect}
+                onModelSearch={handleModelSearch}
+                onModelUnload={handleModelUnload}
+                showModelSelector={true}
+                className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm"
             />
-            <main className="flex-1 w-full px-4 py-8 bg-gray-50 dark:bg-gray-900">
+            <main className="flex-1 w-full px-4 bg-gray-50 dark:bg-gray-900 pt-24 pb-24">
                 {showMessage && (
                     <Card className="max-w-2xl mx-auto w-full">
                         <CardBody className="p-6 w-full">
@@ -152,7 +183,7 @@ export function App() {
                         generatingResult={generatingResult}
                     />
                 )}
-                <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+                <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40">
                     <div className="w-full px-4 py-4">
                         <InputRow
                             disabled={!state.model.loaded || !state.contextSequence.loaded}

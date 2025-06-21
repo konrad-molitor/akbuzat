@@ -30,7 +30,9 @@ function createWindow() {
     win = new BrowserWindow({
         icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
         webPreferences: {
-            preload: path.join(__dirname, "preload.mjs")
+            preload: path.join(__dirname, "preload.mjs"),
+            nodeIntegration: false,
+            contextIsolation: true
         },
         width: 1000,
         height: 700
@@ -56,8 +58,9 @@ function createWindow() {
     else
         void win.loadFile(path.join(RENDERER_DIST, "index.html"));
 
-    // Открываем DevTools
-    win.webContents.openDevTools();
+    if (VITE_DEV_SERVER_URL) {
+        win.webContents.openDevTools();
+    }
 }
 
 // Quit when all windows are closed, except on macOS. There, it's common
