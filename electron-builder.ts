@@ -38,11 +38,11 @@ export default {
     win: {
         target: [
             {
-                target: "zip", 
+                target: "dir", 
                 arch: ["x64"]
             }
         ],
-        artifactName: "${name}.Windows.${version}.${arch}.${ext}"
+        artifactName: "${name}.Windows.${version}.${arch}"
     },
 
     linux: {
