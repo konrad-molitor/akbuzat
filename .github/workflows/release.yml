@@ -1,15 +1,21 @@
-name: Build
+name: Manual Release
+
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened]
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Is this a prerelease?'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
-  build-electron:
-    name: Build Electron app - ${{ matrix.config.name }}
+  build-and-release:
+    name: Build and Release - ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
@@ -47,10 +53,7 @@ jobs:
       - name: Install dependencies on Ubuntu
         if: matrix.config.name == 'Ubuntu'
         run: |
-          # Update repositories
           sudo apt-get update
-          
-          # Install compilers and build tools
           sudo apt-get install -y \
             build-essential \
             gcc \
@@ -62,11 +65,7 @@ jobs:
             pkg-config \
             libarchive-tools \
             rpm
-          
-          # Install snapcraft for snap packages if needed
           sudo snap install snapcraft --classic
-          
-          # Verify all tools are installed
           gcc --version
           g++ --version
           cmake --version
@@ -75,56 +74,40 @@ jobs:
       - name: Install dependencies on Windows
         if: matrix.config.name == 'Windows'
         run: |
-          # Install basic tools via Chocolatey
           choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
           choco install python3 -y
           choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.CMake.Project --add Microsoft.VisualStudio.Component.VC.ATL --add Microsoft.VisualStudio.Component.VC.ATLMFC --add Microsoft.VisualStudio.Component.Windows10SDK --add Microsoft.VisualStudio.Component.VC.CoreBuildTools" -y
-          
-          # Verify all tools are installed
           cmake --version
           python --version
-          
-          # Set Visual Studio environment variables
           echo "CMAKE_GENERATOR=Visual Studio 17 2022" >> $env:GITHUB_ENV
           echo "CMAKE_GENERATOR_PLATFORM=x64" >> $env:GITHUB_ENV
 
       - name: Install modules
         run: yarn install --frozen-lockfile
         env:
-          # Skip model download in CI
           SKIP_MODEL_DOWNLOAD: "true"
-          # Common variables for building native modules
           npm_config_build_from_source: "true"
-          # Windows variables
           npm_config_msvs_version: "2022"
           npm_config_target_arch: "x64"
-          # Variables for building node-llama-cpp
           NODE_LLAMA_CPP_CMAKE_OPTION_GGML_NATIVE: "OFF"
           NODE_LLAMA_CPP_CMAKE_OPTION_GGML_STATIC: "ON"
           NODE_LLAMA_CPP_CMAKE_OPTION_GGML_LTO: "ON"
 
-      - name: Build electron app for Windows (zip only)
+      - name: Build electron app for Windows
         if: matrix.config.name == 'Windows'
-        id: build-win
         shell: bash
         timeout-minutes: 480
-        run: |
-          # Build only zip for Windows x64
-          yarn run build:win-zip
+        run: yarn run build:win-zip
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
-          # Force x64 architecture usage
           npm_config_target_arch: "x64"
           npm_config_target_platform: "win32"
 
-      - name: Build electron app for Linux (tar.gz only)
+      - name: Build electron app for Linux
         if: matrix.config.name == 'Ubuntu'
-        id: build-linux
         shell: bash
         timeout-minutes: 480
-        run: |
-          # Use existing script to build Linux tar.gz
-          yarn run build:linux-tar
+        run: yarn run build:linux-tar
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
 
@@ -144,13 +127,10 @@ jobs:
           name: "akbuzat-linux-x64-tar-gz"
           path: "./release/*.tar.gz"
 
-  # New job for creating releases
-  create-release:
-    name: Create Release
+  create-manual-release:
+    name: Create Manual Release
     runs-on: ubuntu-latest
-    needs: build-electron
-    # Create release only on push to main (not on PR)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build-and-release
     
     steps:
       - uses: actions/checkout@v4
@@ -160,14 +140,6 @@ jobs:
         with:
           path: ./artifacts
       
-      - name: Generate release tag
-        id: tag
-        run: |
-          # Generate tag based on date and short commit hash
-          TAG="v$(date +'%Y.%m.%d')-$(git rev-parse --short HEAD)"
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "Generated tag: $TAG"
-      
       - name: Prepare release assets
         run: |
           mkdir -p ./release-assets
@@ -175,37 +147,41 @@ jobs:
           # Archive Windows artifacts
           if [ -d "./artifacts/akbuzat-windows-x64" ]; then
             cd "./artifacts/akbuzat-windows-x64"
-            zip -r "../../release-assets/akbuzat-windows-x64.zip" .
+            zip -r "../../release-assets/akbuzat-${{ inputs.version }}-windows-x64.zip" .
             cd ../..
           fi
           
-          # Copy Linux tar.gz
+          # Rename Linux tar.gz with version
           if [ -f "./artifacts/akbuzat-linux-x64-tar-gz"/*.tar.gz ]; then
-            cp "./artifacts/akbuzat-linux-x64-tar-gz"/*.tar.gz "./release-assets/"
+            for file in "./artifacts/akbuzat-linux-x64-tar-gz"/*.tar.gz; do
+              filename=$(basename "$file")
+              extension="${filename##*.}"
+              name="${filename%.*}"
+              cp "$file" "./release-assets/akbuzat-${{ inputs.version }}-linux-x64.tar.gz"
+            done
           fi
           
-          # Show what we have
           ls -la ./release-assets/
       
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          name: "Release ${{ steps.tag.outputs.tag }}"
+          tag_name: ${{ inputs.version }}
+          name: "Release ${{ inputs.version }}"
           body: |
-            🚀 **Automatic release from main**
+            🎉 **Manual release ${{ inputs.version }}**
             
             📅 Created: $(date +'%Y-%m-%d %H:%M:%S UTC')
             📝 Commit: ${{ github.sha }}
             
             ## Download:
-            - **Windows x64**: `akbuzat-windows-x64.zip`
-            - **Linux x64**: `*.tar.gz`
+            - **Windows x64**: `akbuzat-${{ inputs.version }}-windows-x64.zip`
+            - **Linux x64**: `akbuzat-${{ inputs.version }}-linux-x64.tar.gz`
             
-            ## What's new:
-            ${{ github.event.head_commit.message }}
+            ## Notes:
+            This release was created manually from commit ${{ github.sha }}.
           files: ./release-assets/*
           draft: false
-          prerelease: false
+          prerelease: ${{ inputs.prerelease }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
