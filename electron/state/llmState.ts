@@ -1019,6 +1019,45 @@ export const llmFunctions = {
                 }
             };
         });
+    },
+
+    async deleteModel(filename: string) {
+        const modelPath = path.join(modelDirectoryPath, filename);
+        
+        try {
+            // Check if this is the currently loaded model
+            if (llmState.state.selectedModelFilePath === modelPath) {
+                // Unload the model first
+                await llmFunctions.unloadModel();
+            }
+            
+            // Delete the file
+            await fs.unlink(modelPath);
+            
+            // Refresh local models list
+            await llmFunctions.scanLocalModels();
+            
+            console.log(`Model ${filename} deleted successfully`);
+        } catch (err) {
+            console.error(`Failed to delete model ${filename}`, err);
+            throw err;
+        }
+    },
+
+    async deleteMultipleModels(filenames: string[]) {
+        const errors: string[] = [];
+        
+        for (const filename of filenames) {
+            try {
+                await llmFunctions.deleteModel(filename);
+            } catch (err) {
+                errors.push(`${filename}: ${String(err)}`);
+            }
+        }
+        
+        if (errors.length > 0) {
+            throw new Error(`Failed to delete some models:\n${errors.join('\n')}`);
+        }
     }
 } as const;
 

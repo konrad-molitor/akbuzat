@@ -115,6 +115,14 @@ export function App() {
         await electronLlmRpc.unloadModel();
     }, []);
 
+    const handleModelDelete = useCallback(async (filename: string) => {
+        await electronLlmRpc.deleteModel(filename);
+    }, []);
+
+    const handleModelDeleteMultiple = useCallback(async (filenames: string[]) => {
+        await electronLlmRpc.deleteMultipleModels(filenames);
+    }, []);
+
     const error = state.llama.error ?? state.model.error ?? state.context.error ?? state.contextSequence.error;
     const loading = state.selectedModelFilePath != null && error == null && (
         !state.model.loaded || !state.llama.loaded || !state.context.loaded || !state.contextSequence.loaded || !state.chatSession.loaded
@@ -138,6 +146,8 @@ export function App() {
                 onModelSelect={handleModelSelect}
                 onModelSearch={handleModelSearch}
                 onModelUnload={handleModelUnload}
+                onModelDelete={handleModelDelete}
+                onModelDeleteMultiple={handleModelDeleteMultiple}
                 showModelSelector={true}
                 className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm"
             />
