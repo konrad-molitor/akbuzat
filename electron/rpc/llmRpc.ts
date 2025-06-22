@@ -136,6 +136,24 @@ export class ElectronLlmRpc {
                 console.error('Failed to save prompts:', error);
                 throw error;
             }
+        },
+        
+        // System prompt functions
+        async setSystemPrompt(name: string, content: string): Promise<void> {
+            llmState.state = {
+                ...llmState.state,
+                systemPrompt: { name, content }
+            };
+            
+            // If we have an active chat session, recreate it with the new system prompt
+            if (llmState.state.chatSession.loaded) {
+                console.log('Recreating chat session with new system prompt...');
+                await llmFunctions.chatSession.resetChatHistory();
+            }
+        },
+        
+        getSystemPrompt(): { name: string, content: string } {
+            return llmState.state.systemPrompt;
         }
     } as const;
 

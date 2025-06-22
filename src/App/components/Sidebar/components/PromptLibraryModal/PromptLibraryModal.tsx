@@ -1,12 +1,12 @@
 import { ReactElement, useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import classNames from "classnames";
-import { electronLlmRpc } from "../../../../../rpc/llmRpc.ts";
+import { electronLlmRpc } from "../../../../../rpc/llmRpc";
 
 export interface PromptLibraryModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onPromptSelect: (promptName: string) => void;
+    onPromptSelect: (promptName: string, promptContent: string) => void;
     currentPrompt: string;
 }
 
@@ -46,14 +46,17 @@ export function PromptLibraryModal({
 
     useEffect(() => {
         if (isOpen) {
+            console.log('Modal opened, initializing with:', { currentPrompt, prompts });
             // Initialize with current prompt if it exists
             const existing = prompts.find(p => p.name === currentPrompt);
             if (existing) {
+                console.log('Found existing prompt:', existing);
                 setSelectedPromptId(existing.id);
                 setPromptName(existing.name);
                 setPromptContent(existing.content);
                 setIsNewPrompt(false);
             } else {
+                console.log('No existing prompt found, starting with new prompt');
                 // Start with empty new prompt
                 handleNewPrompt();
             }
@@ -87,6 +90,7 @@ export function PromptLibraryModal({
     };
 
     const handlePromptSelect = (prompt: PromptItem) => {
+        console.log('Selected prompt from list:', prompt);
         setSelectedPromptId(prompt.id);
         setPromptName(prompt.name);
         setPromptContent(prompt.content);
@@ -126,8 +130,12 @@ export function PromptLibraryModal({
     };
 
     const handleUse = () => {
-        if (promptName.trim()) {
-            onPromptSelect(promptName.trim());
+        console.log('handleUse called', { promptName: promptName.trim(), promptContent: promptContent.trim() });
+        if (promptName.trim() && promptContent.trim()) {
+            console.log('Calling onPromptSelect with:', { name: promptName.trim(), content: promptContent.trim() });
+            onPromptSelect(promptName.trim(), promptContent.trim());
+        } else {
+            console.log('Validation failed - missing name or content');
         }
     };
 
@@ -278,7 +286,7 @@ export function PromptLibraryModal({
                     </div>
                     <button
                         onClick={handleUse}
-                        disabled={!promptName.trim()}
+                        disabled={!promptName.trim() || !promptContent.trim()}
                         className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
                     >
                         Use
