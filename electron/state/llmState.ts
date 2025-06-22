@@ -7,6 +7,7 @@ import {
 import {withLock, State} from "lifecycle-utils";
 import packageJson from "../../package.json";
 import {modelFunctions} from "../llm/modelFunctions.js";
+import {processTemplateVariables} from "../utils/templateProcessor.js";
 
 export const llmState = new State<LlmState>({
     appVersion: packageJson.version,
@@ -40,6 +41,10 @@ export const llmState = new State<LlmState>({
             prompt: "",
             completion: ""
         }
+    },
+    systemPrompt: {
+        name: "Default System Prompt",
+        content: "You are a helpful assistant."
     }
 });
 
@@ -87,6 +92,10 @@ export type LlmState = {
             prompt: string,
             completion: string
         }
+    },
+    systemPrompt: {
+        name: string,
+        content: string
     }
 };
 
@@ -524,9 +533,14 @@ export const llmFunctions = {
                 return;
 
             chatSession?.dispose();
+            // Process system prompt template variables
+            const processedSystemPrompt = processTemplateVariables(llmState.state.systemPrompt.content);
+            console.log("processedSystemPrompt", processedSystemPrompt);
+            
             chatSession = new LlamaChatSession({
                 contextSequence,
-                autoDisposeSequence: false
+                autoDisposeSequence: false,
+                systemPrompt: processedSystemPrompt
             });
             chatSessionCompletionEngine = chatSession.createPromptCompletionEngine({
                 onGeneration(prompt, completion) {
