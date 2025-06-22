@@ -165,13 +165,17 @@ jobs:
         with:
           path: ./artifacts
       
-      - name: Generate release tag
+      - name: Generate release tag and date
         id: tag
         run: |
           # Generate tag based on date and short commit hash
           TAG="v$(date +'%Y.%m.%d')-$(git rev-parse --short HEAD)"
+          # Generate formatted date for release body
+          RELEASE_DATE=$(date +'%Y-%m-%d %H:%M:%S UTC')
           echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "date=$RELEASE_DATE" >> $GITHUB_OUTPUT
           echo "Generated tag: $TAG"
+          echo "Generated date: $RELEASE_DATE"
       
       - name: Prepare release assets
         run: |
@@ -200,7 +204,7 @@ jobs:
           body: |
             🚀 **Automatic release from main**
             
-            📅 Created: $(date +'%Y-%m-%d %H:%M:%S UTC')
+            📅 Created: ${{ steps.tag.outputs.date }}
             📝 Commit: ${{ github.sha }}
             
             ## Download:
