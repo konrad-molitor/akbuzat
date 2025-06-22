@@ -7,6 +7,11 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
+# Add permissions for creating releases
+permissions:
+  contents: write
+  pull-requests: read
+
 jobs:
   build-electron:
     name: Build Electron app - ${{ matrix.config.name }}
@@ -188,7 +193,7 @@ jobs:
           ls -la ./release-assets/
       
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: "Release ${{ steps.tag.outputs.tag }}"
@@ -207,5 +212,6 @@ jobs:
           files: ./release-assets/*
           draft: false
           prerelease: false
+          fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
