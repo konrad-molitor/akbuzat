@@ -7,6 +7,7 @@ import {Header} from "./components/Header/Header.tsx";
 import {ChatHistory} from "./components/ChatHistory/ChatHistory.tsx";
 import {InputRow} from "./components/InputRow/InputRow.tsx";
 import {StartScreen} from "./components/StartScreen/StartScreen.tsx";
+import {Sidebar} from "./components/Sidebar/Sidebar.tsx";
 
 export function App() {
     const state = useExternalState(llmState);
@@ -148,7 +149,7 @@ export function App() {
                 className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm"
             />
             {showMessage && (
-                <main className="flex-1 w-full px-4 bg-gray-50 dark:bg-gray-900 pt-24 pb-24 flex items-center justify-center">
+                <main className="flex-1 w-full px-4 pr-84 bg-gray-50 dark:bg-gray-900 pt-24 pb-24 flex items-center justify-center">
                     <StartScreen
                         state={state}
                         loading={loading}
@@ -158,7 +159,7 @@ export function App() {
                 </main>
             )}
             {!showMessage && (
-                <main className="flex-1 w-full px-4 bg-gray-50 dark:bg-gray-900 pt-24 pb-24">
+                <main className="flex-1 w-full px-4 pr-84 bg-gray-50 dark:bg-gray-900 pt-24 pb-24">
                     <ChatHistory
                         className="w-full max-w-2xl mx-auto"
                         simplifiedChat={state.chatSession.simplifiedChat}
@@ -166,6 +167,9 @@ export function App() {
                     />
                 </main>
             )}
+            
+            {/* Fixed Sidebar */}
+            <Sidebar />
             <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40">
                 <div className="w-full px-4 py-4">
                     <InputRow

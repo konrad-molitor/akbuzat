@@ -12,6 +12,9 @@ export default {
             fontFamily: {
                 sans: ['Inter', 'system-ui', 'Avenir', 'Helvetica', 'Arial', 'sans-serif'],
             },
+            spacing: {
+                '84': '21rem',
+            },
             colors: {
                 background: 'var(--background-color)',
                 text: 'var(--text-color)',

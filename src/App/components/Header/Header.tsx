@@ -25,7 +25,7 @@ export function Header({
     const [isModelManagerOpen, setIsModelManagerOpen] = useState(false);
 
     return (
-        <div className={classNames("grid grid-cols-3 items-center w-full px-6 py-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm", className)}>
+        <div className={classNames("grid grid-cols-3 items-center w-full px-6 py-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm", className)} style={{ WebkitAppRegion: 'drag', paddingLeft: (process.env.NODE_ENV === 'development' || (typeof window !== 'undefined' && navigator.platform.includes('Mac'))) ? '5rem' : '1.5rem' } as CSSProperties}>
             {/* Left section - App icon */}
             <div className="flex items-center justify-start">
                 <div className="flex items-center gap-3">
@@ -49,7 +49,7 @@ export function Header({
             </div>
             
             {/* Center section - Model selector */}
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center" style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}>
                 {showModelSelector && llmState ? (
                     <ModelSelector
                         state={llmState}
@@ -85,7 +85,7 @@ export function Header({
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 ml-auto">
+                        <div className="flex items-center gap-2 ml-auto" style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}>
                             <button
                                 className="p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors relative z-10 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
                                 disabled={onResetChatClick == null}
@@ -107,7 +107,7 @@ export function Header({
             </div>
             
             {/* Right section - Settings and version */}
-            <div className="flex items-center justify-end gap-4">
+            <div className="flex items-center justify-end gap-4" style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}>
                 {/* Model management button - always visible when llmState exists */}
                 {llmState && (
                     <button

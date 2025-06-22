@@ -86,12 +86,31 @@ export function InputRow({
         }
     }, [submitPrompt, setInputValue, onPromptInput, resizeInput, autocompleteText]);
 
-    const previewAutocompleteText = useMemo(() => {
+    const { previewAutocompleteText, hasMoreContent } = useMemo(() => {
         const lines = autocompleteText.split("\n");
-        if (lines.length <= 1 || lines[1]!.trim() === "")
-            return lines[0]!;
-
-        return autocompleteText;
+        const firstLine = lines[0] || "";
+        
+        // Calculate available space (considering padding and tab hint)
+        const maxLength = 60; // Reduced to account for "Tab to accept" hint
+        
+        let preview = firstLine;
+        let hasMore = false;
+        
+        // Check if we need to truncate the first line
+        if (firstLine.length > maxLength) {
+            preview = firstLine.slice(0, maxLength) + "...";
+            hasMore = true;
+        }
+        
+        // Check if there are multiple lines
+        if (lines.length > 1 && lines[1]!.trim() !== "") {
+            hasMore = true;
+            if (preview === firstLine) {
+                preview = firstLine + "...";
+            }
+        }
+        
+        return { previewAutocompleteText: preview, hasMoreContent: hasMore };
     }, [autocompleteText]);
 
     return (
@@ -111,7 +130,7 @@ export function InputRow({
                     onScroll={resizeInput}
                     placeholder={
                         autocompleteText === ""
-                            ? "Type a message..."
+                            ? "Type a message... (Enter to send, Shift+Enter for new line)"
                             : ""
                     }
                 />
@@ -121,10 +140,17 @@ export function InputRow({
                         autocompleteText === "" && "hidden"
                     )}>
                         <div className="invisible" ref={autocompleteCurrentTextRef} />
-                        <div className="text-gray-400 dark:text-gray-500">{previewAutocompleteText}</div>
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 px-2 py-1 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded">Tab</div>
+                        <div className="text-gray-400 dark:text-gray-500 pr-20 max-w-full overflow-hidden">{previewAutocompleteText}</div>
                     </div>
                 </div>
+                
+                {/* Tab hint - positioned outside of text area */}
+                {autocompleteText !== "" && (
+                    <div className="absolute right-2 top-2 px-2 py-1 text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-md shadow-sm border border-gray-200 dark:border-gray-600 flex items-center gap-1">
+                        <kbd className="px-1 py-0.5 text-xs font-mono bg-gray-100 dark:bg-gray-700 rounded">Tab</kbd>
+                        {hasMoreContent && <span className="text-blue-500 dark:text-blue-400">+</span>}
+                    </div>
+                )}
             </div>
             <button
                 className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -153,3 +179,4 @@ type InputRowProps = {
     autocompleteCompletion?: string,
     generatingResult: boolean
 };
+

@@ -1,6 +1,6 @@
 import React, {useState, useCallback, useMemo} from "react";
 import {Autocomplete, AutocompleteItem, Chip, Avatar, Spinner, Progress} from "@heroui/react";
-import {MagnifyingGlassIcon, ArrowDownTrayIcon, CheckIcon, TrashIcon} from "@heroicons/react/24/outline";
+import {MagnifyingGlassIcon, ArrowDownTrayIcon, CheckIcon, BackspaceIcon} from "@heroicons/react/24/outline";
 import {LlmState, LocalModel, RemoteModel} from "../../../../electron/state/llmState.js";
 
 function parseModelName(filename: string): string {
@@ -190,7 +190,7 @@ export function ModelSelector({
     }, [currentModelName, displayModelName]);
 
     return (
-        <div className="w-full min-w-[700px] flex items-center gap-3">
+        <div className="w-full min-w-[700px] flex items-center gap-3" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
             <Autocomplete
                 placeholder={placeholderText}
                 inputValue={displayValue}
@@ -209,17 +209,32 @@ export function ModelSelector({
                 endContent={
                     <div className="flex items-center gap-2 flex-shrink-0">
                         {currentModelName && (
-                            <Chip
-                                size="sm"
-                                color="success"
-                                variant="dot"
-                                classNames={{
-                                    base: "h-6 px-2 min-w-max bg-green-100 dark:bg-green-900/30",
-                                    content: "text-xs font-medium text-green-700 dark:text-green-300"
-                                }}
-                            >
-                                ready
-                            </Chip>
+                            <>
+                                <Chip
+                                    size="sm"
+                                    color="success"
+                                    variant="dot"
+                                    classNames={{
+                                        base: "h-6 px-2 min-w-max bg-green-100 dark:bg-green-900/30",
+                                        content: "text-xs font-medium text-green-700 dark:text-green-300"
+                                    }}
+                                >
+                                    ready
+                                </Chip>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        console.log('Unload button clicked');
+                                        onModelUnload?.();
+                                    }}
+                                    disabled={disabled || isDownloading}
+                                    className="p-2 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
+                                    title="Unload current model"
+                                    style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+                                >
+                                    <BackspaceIcon className="w-5 h-5" />
+                                </button>
+                            </>
                         )}
                     </div>
                 }
@@ -377,18 +392,7 @@ export function ModelSelector({
                     </AutocompleteItem>
                 ))}
             </Autocomplete>
-            
-            {/* Unload Model Button */}
-            {currentModelName && (
-                <button
-                    onClick={onModelUnload}
-                    disabled={disabled || isDownloading}
-                    className="flex-shrink-0 p-4 h-16 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Unload current model"
-                >
-                    <TrashIcon className="w-6 h-6 text-red-600 dark:text-red-400" />
-                </button>
-            )}
+
         </div>
     );
 }
