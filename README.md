@@ -1,6 +1,15 @@
-# Akbuzat
+<div align="center">
+  <img src="public/icons/icon-256.png" alt="Akbuzat - Крылатая лошадь из башкирской мифологии" width="128" height="128">
+  
+  # Akbuzat
+  
+  **Toolset Application to run LLMs locally and securely on your own data**
+  
+  [![GitHub release](https://img.shields.io/github/v/release/yourusername/akbuzat?include_prereleases&label=Latest%20Release)](https://github.com/yourusername/akbuzat/releases/latest)
+  [![Build Status](https://github.com/yourusername/akbuzat/workflows/Build/badge.svg)](https://github.com/yourusername/akbuzat/actions)
+</div>
 
-Toolset Application to run LLMs locally and securely on your own data.
+---
 
 ## About
 
@@ -14,9 +23,6 @@ Akbuzat ([winged horse from bashkir mythology](https://en.wikipedia.org/wiki/Akb
 - Secure data processing
 
 ## Download
-
-[![GitHub release](https://img.shields.io/github/v/release/yourusername/akbuzat?include_prereleases&label=Latest%20Release)](https://github.com/yourusername/akbuzat/releases/latest)
-[![Build Status](https://github.com/yourusername/akbuzat/workflows/Build/badge.svg)](https://github.com/yourusername/akbuzat/actions)
 
 ### Pre-built Binaries
 

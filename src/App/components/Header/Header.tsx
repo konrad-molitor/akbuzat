@@ -26,9 +26,26 @@ export function Header({
 
     return (
         <div className={classNames("grid grid-cols-3 items-center w-full px-6 py-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm", className)}>
-            {/* Left section - placeholder for future app icon */}
+            {/* Left section - App icon */}
             <div className="flex items-center justify-start">
-                {/* Reserved for app icon */}
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                        <img 
+                            src="/icons/icon-32.png" 
+                            alt="Akbuzat" 
+                            className="w-6 h-6 brightness-0 invert"
+                            title="Akbuzat - Winged Horse from Bashkir mythology"
+                        />
+                    </div>
+                    <div className="hidden sm:block">
+                        <div className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            Akbuzat
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                            Local LLM Toolset
+                        </div>
+                    </div>
+                </div>
             </div>
             
             {/* Center section - Model selector */}

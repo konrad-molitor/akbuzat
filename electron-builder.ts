@@ -35,7 +35,13 @@ export default {
         "node_modules/@node-llama-cpp/*"
     ],
 
+    mac: {
+        icon: "./public/icons/app-icon.icns",
+        category: "public.app-category.productivity"
+    },
+
     win: {
+        icon: "./public/icons/app-icon.ico",
         target: [
             {
                 target: "dir", 
@@ -46,6 +52,7 @@ export default {
     },
 
     linux: {
+        icon: "./public/icons/icon-512.png",
         target: [{
             target: "tar.gz",
             arch: [
