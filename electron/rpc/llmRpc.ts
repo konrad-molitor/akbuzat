@@ -1,11 +1,37 @@
 import path from "node:path";
 import fs from "node:fs/promises";
-import {BrowserWindow, dialog} from "electron";
+import {BrowserWindow, dialog, app} from "electron";
 import {createElectronSideBirpc} from "../utils/createElectronSideBirpc.ts";
 import {llmFunctions, llmState, type RemoteModel} from "../state/llmState.ts";
 import type {RenderedFunctions} from "../../src/rpc/llmRpc.ts";
 
 const modelDirectoryPath = path.join(process.cwd(), "models");
+const userDataPath = app.getPath('userData');
+const promptsFilePath = path.join(userDataPath, 'prompts.json');
+
+export interface PromptItem {
+    id: string;
+    name: string;
+    content: string;
+}
+
+const DEFAULT_PROMPTS: PromptItem[] = [
+    {
+        id: "default",
+        name: "Default System Prompt",
+        content: "You are a helpful assistant."
+    },
+    {
+        id: "code", 
+        name: "Code Assistant",
+        content: "You are an expert programmer. Help with coding tasks, debugging, and best practices."
+    },
+    {
+        id: "creative",
+        name: "Creative Writer", 
+        content: "You are a creative writing assistant. Help with stories, poems, and creative content."
+    }
+];
 
 export class ElectronLlmRpc {
     public readonly rendererLlmRpc: ReturnType<typeof createElectronSideBirpc<RenderedFunctions, typeof this.functions>>;
@@ -87,7 +113,30 @@ export class ElectronLlmRpc {
         loadModelFromLocal: llmFunctions.loadModelFromLocal,
         unloadModel: llmFunctions.unloadModel,
         deleteModel: llmFunctions.deleteModel,
-        deleteMultipleModels: llmFunctions.deleteMultipleModels
+        deleteMultipleModels: llmFunctions.deleteMultipleModels,
+        
+        // Prompt management functions
+        async loadPrompts(): Promise<PromptItem[]> {
+            try {
+                const data = await fs.readFile(promptsFilePath, 'utf8');
+                return JSON.parse(data);
+            } catch (error) {
+                // If file doesn't exist or can't be read, return default prompts
+                await this.savePrompts(DEFAULT_PROMPTS);
+                return DEFAULT_PROMPTS;
+            }
+        },
+        
+        async savePrompts(prompts: PromptItem[]): Promise<void> {
+            try {
+                // Ensure the user data directory exists
+                await fs.mkdir(userDataPath, { recursive: true });
+                await fs.writeFile(promptsFilePath, JSON.stringify(prompts, null, 2), 'utf8');
+            } catch (error) {
+                console.error('Failed to save prompts:', error);
+                throw error;
+            }
+        }
     } as const;
 
     public constructor(window: BrowserWindow) {

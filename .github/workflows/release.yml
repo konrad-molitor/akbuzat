@@ -145,6 +145,14 @@ jobs:
         with:
           path: ./artifacts
       
+      - name: Generate release date
+        id: date
+        run: |
+          # Generate formatted date for release body
+          RELEASE_DATE=$(date +'%Y-%m-%d %H:%M:%S UTC')
+          echo "date=$RELEASE_DATE" >> $GITHUB_OUTPUT
+          echo "Generated date: $RELEASE_DATE"
+      
       - name: Prepare release assets
         run: |
           mkdir -p ./release-assets
@@ -176,7 +184,7 @@ jobs:
           body: |
             🎉 **Manual release ${{ inputs.version }}**
             
-            📅 Created: $(date +'%Y-%m-%d %H:%M:%S UTC')
+            📅 Created: ${{ steps.date.outputs.date }}
             📝 Commit: ${{ github.sha }}
             
             ## Download:

@@ -1,5 +1,6 @@
 import {fileURLToPath} from "node:url";
 import path from "node:path";
+import fs from "node:fs";
 import {app, shell, BrowserWindow} from "electron";
 import {registerLlmRpc} from "./rpc/llmRpc.ts";
 
@@ -26,7 +27,57 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 
 let win: BrowserWindow | null;
 
+// Function to save window state
+function saveWindowState() {
+    if (!win) return;
+    
+    const bounds = win.getBounds();
+    const isMaximized = win.isMaximized();
+    
+    const windowState = {
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+        isMaximized
+    };
+    
+    try {
+        const userDataPath = app.getPath('userData');
+        const windowStatePath = path.join(userDataPath, 'window-state.json');
+        fs.writeFileSync(windowStatePath, JSON.stringify(windowState));
+    } catch (error) {
+        console.error('Failed to save window state:', error);
+    }
+}
+
+// Function to load window state
+function loadWindowState() {
+    try {
+        const userDataPath = app.getPath('userData');
+        const windowStatePath = path.join(userDataPath, 'window-state.json');
+        
+        if (fs.existsSync(windowStatePath)) {
+            const data = fs.readFileSync(windowStatePath, 'utf8');
+            return JSON.parse(data);
+        }
+    } catch (error) {
+        console.error('Failed to load window state:', error);
+    }
+    
+    // Return default state
+    return {
+        width: 1400,
+        height: 900,
+        x: undefined,
+        y: undefined,
+        isMaximized: false
+    };
+}
+
 function createWindow() {
+    const windowState = loadWindowState();
+    
     win = new BrowserWindow({
         icon: path.join(process.env.VITE_PUBLIC, "app-icon.png"),
         webPreferences: {
@@ -34,9 +85,26 @@ function createWindow() {
             nodeIntegration: false,
             contextIsolation: true
         },
-        width: 1000,
-        height: 700
+        width: windowState.width,
+        height: windowState.height,
+        x: windowState.x,
+        y: windowState.y,
+        minWidth: 1200,
+        minHeight: 800,
+        show: false, // Don't show until ready
+        titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+        trafficLightPosition: process.platform === 'darwin' ? { x: 20, y: 20 } : undefined
     });
+    
+    // Restore maximized state
+    if (windowState.isMaximized) {
+        win.maximize();
+    }
+    
+    // Save window state on resize, move, and close
+    win.on('resize', saveWindowState);
+    win.on('move', saveWindowState);
+    win.on('close', saveWindowState);
     registerLlmRpc(win);
 
     // open external links in the default browser
@@ -51,6 +119,8 @@ function createWindow() {
     // Test active push message to Renderer-process.
     win.webContents.on("did-finish-load", () => {
         win?.webContents.send("main-process-message", (new Date()).toLocaleString());
+        // Show window when content is loaded to prevent flash
+        win?.show();
     });
 
     if (VITE_DEV_SERVER_URL)
